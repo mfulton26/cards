@@ -6,9 +6,47 @@
     <title>Cards</title>
   </head>
   <body>
-    <img
-      src="assets/cards/standard/File_English_pattern_ace_of_spades.svg"
-      alt="Ace of Spades"
-    >
+    <script type="module">
+      const ranks = [
+        "ace",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8",
+        "9",
+        "10",
+        "jack",
+        "queen",
+        "king",
+      ];
+      const suites = [
+        "clubs",
+        "diamonds",
+        "hearts",
+        "spades",
+      ];
+      const deck = ranks.flatMap((rank) =>
+        suites.map((suite) => ({ rank, suite }))
+      );
+      function shuffle(array) {
+        const { length } = array;
+        for (let i = 1; i < length; i++) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [array[i], array[j]] = [array[j], array[i]];
+        }
+        return array;
+      }
+      shuffle(deck);
+      for (const { rank, suite } of deck) {
+        const img = document.createElement("img");
+        img.src =
+          `assets/cards/standard/English_pattern_${rank}_of_${suite}.svg`;
+        img.alt = `${rank} of ${suite}`;
+        document.body.appendChild(img);
+      }
+    </script>
   </body>
 </html>
