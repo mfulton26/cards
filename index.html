@@ -6,6 +6,14 @@
     <title>Cards</title>
   </head>
   <body>
+    <svg
+      id="play"
+      width="100vmin"
+      height="100vmin"
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 700 700"
+    >
+    </svg>
     <script type="module">
       const ranks = [
         "ace",
@@ -46,6 +54,22 @@
           `assets/cards/standard/English_pattern_${rank}_of_${suite}.svg`;
         img.alt = `${rank} of ${suite}`;
         document.body.appendChild(img);
+      }
+      const play = document.querySelector("#play");
+      for (const { rank, suite } of deck) {
+        const image = document.createElementNS(
+          "http://www.w3.org/2000/svg",
+          "image",
+        );
+        image.setAttribute(
+          "href",
+          `assets/cards/standard/English_pattern_${rank}_of_${suite}.svg`,
+        );
+        image.setAttribute("x", Math.random() * 600);
+        image.setAttribute("y", Math.random() * 505);
+        image.setAttribute("width", 100);
+        image.setAttribute("height", 150);
+        play.appendChild(image);
       }
     </script>
   </body>
