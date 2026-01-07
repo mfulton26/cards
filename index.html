@@ -7,11 +7,11 @@
   </head>
   <body>
     <svg
-      id="play"
+      id="play-area"
       width="100vmin"
       height="100vmin"
       xmlns="http://www.w3.org/2000/svg"
-      viewBox="0 0 700 700"
+      viewBox="-510 -510 1020 1020"
     >
     </svg>
     <script type="module">
@@ -48,28 +48,109 @@
         return array;
       }
       shuffle(deck);
-      for (const { rank, suite } of deck) {
-        const img = document.createElement("img");
-        img.src =
-          `assets/cards/standard/English_pattern_${rank}_of_${suite}.svg`;
-        img.alt = `${rank} of ${suite}`;
-        document.body.appendChild(img);
+
+      /**
+       * @param {MouseEvent | TouchEvent} event
+       */
+      function getMousePosition(event) {
+        const CTM = playArea.getScreenCTM();
+        const touch = "touches" in event ? event.touches[0] : event;
+        return {
+          x: (touch.clientX - CTM.e) / CTM.a,
+          y: (touch.clientY - CTM.f) / CTM.d,
+        };
       }
-      const play = document.querySelector("#play");
+
+      /** @type {SVGImageElement | undefined} */
+      let selectedCard;
+
+      /** @param {MouseEvent | TouchEvent} event */
+      function selectCard(event) {
+        selectedCard = event.currentTarget;
+      }
+
+      const backHref = "assets/cards/Card_back_01.svg";
+
+      /** @type {SVGSVGElement} */
+      const playArea = document.querySelector("#play-area");
       for (const { rank, suite } of deck) {
         const image = document.createElementNS(
           "http://www.w3.org/2000/svg",
           "image",
         );
-        image.setAttribute(
-          "href",
-          `assets/cards/standard/English_pattern_${rank}_of_${suite}.svg`,
-        );
-        image.setAttribute("x", Math.random() * 600);
-        image.setAttribute("y", Math.random() * 505);
+        const translateTransform = playArea.createSVGTransform();
+        translateTransform.setTranslate(0, 0);
+        image.transform.baseVal.appendItem(translateTransform);
+
+        image.tabIndex = 0;
+
+        let isRevealed = false;
+
+        const faceHref =
+          `assets/cards/standard/English_pattern_${rank}_of_${suite}.svg`;
+
+        image.setAttribute("href", isRevealed ? faceHref : backHref);
+        image.setAttribute("x", -50);
+        image.setAttribute("y", -75);
         image.setAttribute("width", 100);
         image.setAttribute("height", 150);
-        play.appendChild(image);
+        let isDragging = false;
+        let offset;
+        /** @param {MouseEvent | TouchEvent} event */
+        function startDrag(event) {
+          isDragging = true;
+          offset = getMousePosition(event);
+          offset.x -= translateTransform.matrix.e;
+          offset.y -= translateTransform.matrix.f;
+          if (
+            playArea.children[playArea.children.length - 1] !== image
+          ) {
+            playArea.appendChild(image);
+          }
+        }
+        /** @param {MouseEvent | TouchEvent} event */
+        function drag(event) {
+          if (!isDragging) return;
+          const { x, y } = getMousePosition(event);
+          translateTransform.setTranslate(x - offset.x, y - offset.y);
+        }
+        /** @param {MouseEvent | TouchEvent} event */
+        function endDrag(event) {
+          isDragging = false;
+        }
+
+        image.addEventListener("mousedown", startDrag);
+        image.addEventListener("mousemove", drag);
+        image.addEventListener("mouseup", endDrag);
+        image.addEventListener("touchstart", startDrag);
+        image.addEventListener("touchmove", drag);
+        image.addEventListener("touchend", endDrag);
+
+        // image.addEventListener("mouseup", selectCard);
+        // image.addEventListener("touchend", selectCard);
+
+        image.addEventListener("dblclick", (e) => {
+          isRevealed = !isRevealed;
+          image.setAttribute("href", isRevealed ? faceHref : backHref);
+        });
+
+        let lastTouchTime = -Infinity;
+        image.addEventListener("touchstart", (e) => {
+          const thisTouchTime = Date.now();
+          const interval = thisTouchTime - lastTouchTime;
+
+          if (interval > 0 && interval <= 255) {
+            isRevealed = !isRevealed;
+            image.setAttribute(
+              "href",
+              isRevealed ? faceHref : backHref,
+            );
+          }
+
+          lastTouchTime = thisTouchTime;
+        });
+
+        playArea.appendChild(image);
       }
     </script>
   </body>
